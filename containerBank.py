@@ -39,8 +39,8 @@ class containerBank:
             
     def printContainerBankSize(self):
         if not self._errorExist:
-            print("the container bank is approximately {} m tall, {} m wide and {} m long".format(self._Dz,self._Dy,self._Dx))
-            print("the end of the manifold is approximately at ({},{},{}) m".format(self._endX,self._endY,self._endZ))
+            print("the container bank is approximately {} m tall, {} m deep and {} m long".format(round(self._Dz),round(self._Dy,3),round(self._Dx)))
+            print("the end of the manifold is approximately at ({},{},{}) m".format(round(self._endX,3),round(self._endY,3),round(self._endZ,3)))
 
 #==========================================================================
 
@@ -61,6 +61,10 @@ class containerBankSapp70(containerBank):
     __pipeSizeData = [65,80,100,150]#mm
     __maxMassFlowRateData = [36.1,55.9,99.1,223.3]#kg/s
     __pipeSizeSelector = dict(zip(__maxMassFlowRateData,__pipeSizeData))
+    __bracketDimension = 0.041 #m
+    __15To45ManifoldLength = {2:0.65,3:1.0,4:1.35}#port number:m overall length
+    __60To150ManifoldLength = {2:0.808,3:1.416,4:1.924,5:2.432,6:2.940,7:3.448,8:3.956,9:4.464,10:4.972}#port number:m overall length
+    
     def __init__(self
                 , reserve # 0 or 1
                 , manifoldType # 'end , 'center', 'u'
@@ -238,25 +242,25 @@ class containerBankSapp70(containerBank):
         if(self._cylNum == 1):
             if(self._reserve == 0):
                 self._Dx = self.__cylDiameter[self._cylSize]
-                self._Dy = self.__cylDiameter[self._cylSize]
-                self._Dz = self.__cylHeight[self._cylSize]
-                self._endX = 0
-                self._endY = 0
-                self._endZ = self.__cylHeight[self._cylSize] # for union adaptor only
+                self._Dy = self.__cylDiameter[self._cylSize]+self.__bracketDimension
+                self._Dz = self.__cylHeight[self._cylSize]+self.__hoseZ[self.__calculatePipe1Size()]
+                self._endX = self._Dx
+                self._endY = self.__cylDiameter[self._cylSize]/2.0 + self.__bracketDimension
+                self._endZ = self._Dz 
             elif(self._reserve == 1):
                 if(self.__manifoldType == 'end'):
-                    self._Dx = self.__cylDiameter[self._cylSize]
-                    self._Dy = self.__cylDiameter[self._cylSize]
+                    self._Dx = 2 * 0.3 + self.__inputToInputLength #self.__cylDiameter[self._cylSize]
+                    self._Dy = self.__bracketDimension + self.__cylDiameter[self._cylSize]
                     self._Dz = self.__cylHeight[self._cylSize] + self.__hoseZ[self.__calculatePipe1Size()] + self.__cvZ[self.__calculatePipe1Size()]
-                    self._endX = 0
-                    self._endY = 0
+                    self._endX = 0.0
+                    self._endY = self.__bracketDimension + self.__cylDiameter[self._cylSize]/2.0
                     self._endZ = self.__cylHeight[self._cylSize] + self.__hoseZ[self.__calculatePipe1Size()] + self.__cvZ[self.__calculatePipe1Size()]
                 elif(self.__manifoldType == 'center'):
-                    self._Dx = self.__cylDiameter[self._cylSize]
-                    self._Dy = self.__cylDiameter[self._cylSize]
+                    self._Dx = 2 * 0.3 + self.__inputToInputLength
+                    self._Dy = self.__bracketDimension + self.__cylDiameter[self._cylSize]
                     self._Dz = self.__cylHeight[self._cylSize] + self.__hoseZ[self.__calculatePipe1Size()] + self.__cvZ[self.__calculatePipe1Size()]
-                    self._endX = 0
-                    self._endY = 0
+                    self._endX = self._Dx / 2.0
+                    self._endY = self.__bracketDimension + self.__cylDiameter[self._cylSize]/2.0
                     self._endZ = self.__cylHeight[self._cylSize] + self.__hoseZ[self.__calculatePipe1Size()] + self.__cvZ[self.__calculatePipe1Size()]
                 else: 
                     self._errorExist = True
@@ -268,35 +272,58 @@ class containerBankSapp70(containerBank):
                 return
         elif(self._cylNum>1 and self._cylNum<=12):
             if(self.__manifoldType == 'end'):
-                pass
-                for i in range(1,self._cylNum+1):
-                    pass
+                if self._reserve == 0:
+                    self._Dx = (self._cylNum - 1) * self.__inputToInputLength + 0.6
+                    self._Dy = self.__cylDiameter[self._cylSize]+self.__bracketDimension
+                    self._Dz = self.__cylHeight[self._cylSize] + self.__hoseZ[self.__calculatePipe1Size()] + self.__cvZ[self.__calculatePipe1Size()]
+                    self._endX = 0.0
+                    self._endY = self.__cylDiameter[self._cylSize]/2.0 + self.__bracketDimension
+                    self._endZ = self._Dz
+                elif self._reserve == 1:
+                    self._Dx = (2 * self._cylNum - 1) * self.__inputToInputLength + 0.6
+                    self._Dy = self.__cylDiameter[self._cylSize]+self.__bracketDimension
+                    self._Dz = self.__cylHeight[self._cylSize] + self.__hoseZ[self.__calculatePipe1Size()] + self.__cvZ[self.__calculatePipe1Size()]
+                    self._endX = 0.0
+                    self._endY = self.__cylDiameter[self._cylSize]/2.0 + self.__bracketDimension
+                    self._endZ = self._Dz
+                else:
+                    self._errorExist =True
+                    self._error = "error: reserve is either 1 or 0"
+                    return
             elif(self.__manifoldType == 'center'):
                 if (self._reserve == 0):
-                    pass
-                    for i in range(1,self.__leftCylNum+1):
-                        pass
-                    pass
+                    self._Dx = (self._cylNum - 1) * self.__inputToInputLength + 0.6
+                    self._Dy = self.__cylDiameter[self._cylSize]+self.__bracketDimension
+                    self._Dz = self.__cylHeight[self._cylSize] + self.__hoseZ[self.__calculatePipe1Size()] + self.__cvZ[self.__calculatePipe1Size()]
+                    self._endX = (self._cylNum - self.__leftCylNum - 1) * self.__inputToInputLength + 0.6
+                    self._endY = self.__cylDiameter[self._cylSize]/2.0 + self.__bracketDimension
+                    self._endZ = self._Dz
                 elif(self._reserve == 1):
-                    pass
-                    for i in range(1,self._cylNum+1):
-                        pass
-                    pass
+                    self._Dx = (2 * self._cylNum - 1) * self.__inputToInputLength + 0.6
+                    self._Dy = self.__cylDiameter[self._cylSize]+self.__bracketDimension
+                    self._Dz = self.__cylHeight[self._cylSize] + self.__hoseZ[self.__calculatePipe1Size()] + self.__cvZ[self.__calculatePipe1Size()]
+                    self._endX = self._Dx / 2.0 
+                    self._endY = self.__cylDiameter[self._cylSize]/2.0 + self.__bracketDimension
+                    self._endZ = self._Dz
                 else:
                     self._errorExist =True
                     self._error = "error: reserve is either 1 or 0"
                     return
             elif(self.__manifoldType == 'u'):
                 if(self._reserve == 0):
-                    pass
-                    for i in range(1,self.__leftCylNum+1):
-                        pass
-                    pass
+                    self._Dx = (self.__leftCylNum - 1) * self.__inputToInputLength + 0.8
+                    self._Dy = 2*(self.__cylDiameter[self._cylSize]+self.__bracketDimension)
+                    self._Dz = self.__cylHeight[self._cylSize] + self.__hoseZ[self.__calculatePipe1Size()] + self.__cvZ[self.__calculatePipe1Size()]
+                    self._endX = (self._cylNum - self.__leftCylNum - 1) * self.__inputToInputLength + 0.8
+                    self._endY = self._Dy/2.0
+                    self._endZ = self._Dz
                 elif(self._reserve ==1):
-                    pass
-                    for i in range(1,self._cylNum+1):
-                        pass
-                    pass
+                    self._Dx = (self._cylNum - 1) * self.__inputToInputLength + 0.8
+                    self._Dy = 2*(self.__cylDiameter[self._cylSize]+self.__bracketDimension)
+                    self._Dz = self.__cylHeight[self._cylSize] + self.__hoseZ[self.__calculatePipe1Size()] + self.__cvZ[self.__calculatePipe1Size()]
+                    self._endX = (self._cylNum - 1) * self.__inputToInputLength + 0.8
+                    self._endY = self._Dy/2.0
+                    self._endZ = self._Dz
                 else:
                     self._errorExist = True
                     self._error = "error: reserve is either 1 or 0"
