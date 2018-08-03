@@ -332,7 +332,7 @@ class containerBankSapp70(containerBank):
                     self._error = "error: reserve is either 1 or 0"
                     return
             else:
-                self.erroeExist = True
+                self._erroeExist = True
                 self._error = "error: manifold is either 'end', 'center', or 'u'"
                 return
         else:
