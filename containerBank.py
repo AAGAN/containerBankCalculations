@@ -3,7 +3,7 @@ class containerBank:
     def __init__(self,
                 cylNum,
                 cylSize,
-                manifoldConnectionType = 'threaded', #'threaded' or 'welded'
+                manifoldConnectionType = 'th', #'th' or 'w'
                 reserve = 0, #1 or 0
                 dischargeTime = 10 #s
     ):
@@ -27,10 +27,13 @@ class containerBank:
             print("=====================================================")
             print("number of sections is {}".format(len(self._manifoldSection)))
             #print("-----------------------------------------------------")
-            #print("strt,end,len,elv,pipsz,pipsch,pipConcTyp,elb,sT,tT,cpl,dirt,pTp,slcVlv,nozQD,contn")
+            print("strt,end,len,elv,pipsz,pipsch,pipConcTyp,elb,sT,tT,cpl,dirt,pTp,slcVlv,nozQD,contn")
             #print("-----------------------------------------------------")
-            for input in self._manifoldSection:
-                print(input)
+            #for input in self._manifoldSection:
+            #    print(input)
+            col_width = max(len(str(word)) for row in self._manifoldSection for word in row) + 1  # padding
+            for row in self._manifoldSection:
+                print("".join(str(word).ljust(col_width) for word in row))
             #print("-----------------------------------------------------")
         else:
             print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
@@ -39,7 +42,7 @@ class containerBank:
             
     def printContainerBankSize(self):
         if not self._errorExist:
-            print("the container bank is approximately {} m tall, {} m deep and {} m long".format(round(self._Dz),round(self._Dy,3),round(self._Dx)))
+            print("the container bank is approximately {} m tall, {} m deep and {} m long".format(round(self._Dz,3),round(self._Dy,3),round(self._Dx,3)))
             print("the end of the manifold is approximately at ({},{},{}) m".format(round(self._endX,3),round(self._endY,3),round(self._endZ,3)))
 
 #==========================================================================
@@ -57,7 +60,7 @@ class containerBankSapp70(containerBank):
     __hoseX = {25:0.0815,50:0.1442} #hosediameter mm : hoseheight m
     __cvZ = {25:0.073,50:0.096} #checkvalve mm : checkvaleheight m
     __pipeSchedule = 40 #for the first section
-    __pipeConnectionType = 'threaded' #for the first section
+    __pipeConnectionType = 'th' #for the first section
     __pipeSizeData = [65,80,100,150]#mm
     __maxMassFlowRateData = [36.1,55.9,99.1,223.3]#kg/s
     __pipeSizeSelector = dict(zip(__maxMassFlowRateData,__pipeSizeData))
@@ -71,7 +74,7 @@ class containerBankSapp70(containerBank):
                 , cylNum # number of cylinders
                 , cylSize # 15, 30, 34, 45, 60, 80, 120, 150, 180
                 , leftCylNum # number of cylinders in the 'left' or 'first row' (0 for end manifolds and modular)
-                , manifoldConnectionType # 'welded' or 'threaded'
+                , manifoldConnectionType # 'w' or 'th'
                 #, actualFill #kg in each cylinder
                 #, dischargeTime #s (10s for Sapp+)
                 ):
@@ -345,7 +348,7 @@ class containerBankIFlow300(containerBank):
     def __init__(self
                 , cylNum #number of cylinders
                 , cylSize # 80, 140
-                , manifoldConnectionType # 'threaded' or 'welded'
+                , manifoldConnectionType # 'th' or 'w'
                 , reserve # 1 or 0
                  ):
         super().__init__(cylNum, cylSize, manifoldConnectionType, reserve)
